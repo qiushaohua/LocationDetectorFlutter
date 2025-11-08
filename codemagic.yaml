@@ -1,0 +1,109 @@
+workflows:
+  ios-workflow:
+    name: iOS Workflow
+    max_build_duration: 120
+    instance_type: mac_mini_m1
+    integrations:
+      app_store_connect: # 如果需要发布到App Store，需要配置
+    environment:
+      ios_signing:
+        distribution_type: development # 或 app_store / ad_hoc
+        bundle_identifier: com.example.location_detector
+      vars:
+        XCODE_WORKSPACE: "Runner.xcworkspace"
+        XCODE_SCHEME: "Runner"
+      flutter: stable
+      xcode: latest
+      cocoapods: default
+    scripts:
+      - name: 设置Flutter版本
+        script: |
+          flutter --version
+      - name: 获取Flutter包
+        script: |
+          flutter pub get
+      - name: 安装iOS依赖
+        script: |
+          find . -name "Podfile" -execdir pod install \;
+      - name: 构建iOS应用
+        script: |
+          flutter build ios --release --no-codesign
+    artifacts:
+      - build/ios/iphoneos/*.app
+      - /tmp/xcodebuild_logs/*.log
+      - flutter_drive.log
+    publishing:
+      email:
+        recipients:
+          - your-email@example.com # 修改为你的邮箱
+
+  android-workflow:
+    name: Android Workflow
+    max_build_duration: 120
+    instance_type: mac_mini_m1
+    environment:
+      android_signing:
+        - keystore_reference # 如果需要签名，在Codemagic中配置
+      groups:
+        - google_play # 如果需要发布到Google Play
+      vars:
+        PACKAGE_NAME: "com.example.location_detector"
+      flutter: stable
+    scripts:
+      - name: 设置Flutter版本
+        script: |
+          flutter --version
+      - name: 获取Flutter包
+        script: |
+          flutter pub get
+      - name: 构建APK
+        script: |
+          flutter build apk --release
+      - name: 构建App Bundle
+        script: |
+          flutter build appbundle --release
+    artifacts:
+      - build/app/outputs/**/*.apk
+      - build/app/outputs/**/*.aab
+      - build/**/outputs/**/mapping.txt
+      - flutter_drive.log
+    publishing:
+      email:
+        recipients:
+          - your-email@example.com # 修改为你的邮箱
+      # google_play: # 如果需要发布到Google Play
+      #   credentials: $GCLOUD_SERVICE_ACCOUNT_CREDENTIALS
+      #   track: internal
+
+  all-platforms:
+    name: iOS & Android 同时构建
+    max_build_duration: 120
+    instance_type: mac_mini_m1
+    environment:
+      flutter: stable
+      xcode: latest
+      cocoapods: default
+    scripts:
+      - name: 设置Flutter版本
+        script: |
+          flutter --version
+      - name: 获取Flutter包
+        script: |
+          flutter pub get
+      - name: 构建Android APK
+        script: |
+          flutter build apk --release
+      - name: 安装iOS依赖
+        script: |
+          find . -name "Podfile" -execdir pod install \;
+      - name: 构建iOS应用（无签名）
+        script: |
+          flutter build ios --release --no-codesign
+    artifacts:
+      - build/app/outputs/**/*.apk
+      - build/ios/iphoneos/*.app
+      - flutter_drive.log
+    publishing:
+      email:
+        recipients:
+          - your-email@example.com # 修改为你的邮箱

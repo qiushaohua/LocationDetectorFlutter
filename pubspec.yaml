@@ -1,0 +1,33 @@
+name: location_detector
+description: 检测外部定位设备并显示GPS坐标的Flutter应用
+
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # 定位服务
+  geolocator: ^10.1.0
+
+  # 权限管理
+  permission_handler: ^11.0.1
+
+  # 状态管理
+  provider: ^6.1.1
+
+  # 外部设备检测（仅iOS支持完整功能）
+  flutter_blue_plus: ^1.14.3
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
