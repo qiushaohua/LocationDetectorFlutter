@@ -43,10 +43,10 @@ import CoreLocation
         // 检查GPS相关设备（与iOS原生版LocationManager.swift:60-67完全一致）
         let gpsAccessories = connectedAccessories.filter { accessory in
             let protocols = accessory.protocolStrings
-            return protocols.contains { protocol in
-                protocol.lowercased().contains("gps") ||
-                protocol.lowercased().contains("nmea") ||
-                protocol.lowercased().contains("location")
+            return protocols.contains { protocolString in
+                protocolString.lowercased().contains("gps") ||
+                protocolString.lowercased().contains("nmea") ||
+                protocolString.lowercased().contains("location")
             }
         }
 
@@ -88,8 +88,14 @@ import CoreLocation
             locationManager?.desiredAccuracy = kCLLocationAccuracyBest
         }
 
-        // 请求权限
-        let status = locationManager?.authorizationStatus ?? .notDetermined
+        // 请求权限（兼容 iOS 13+）
+        let status: CLAuthorizationStatus
+        if #available(iOS 14.0, *) {
+            status = locationManager?.authorizationStatus ?? .notDetermined
+        } else {
+            status = CLLocationManager.authorizationStatus()
+        }
+
         if status == .notDetermined {
             locationManager?.requestWhenInUseAuthorization()
         } else if status == .authorizedWhenInUse || status == .authorizedAlways {
@@ -167,7 +173,12 @@ import CoreLocation
     }
 
     func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
-        let status = manager.authorizationStatus
+        let status: CLAuthorizationStatus
+        if #available(iOS 14.0, *) {
+            status = manager.authorizationStatus
+        } else {
+            status = CLLocationManager.authorizationStatus()
+        }
 
         if status == .authorizedWhenInUse || status == .authorizedAlways {
             manager.startUpdatingLocation()
